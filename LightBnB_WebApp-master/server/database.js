@@ -111,21 +111,56 @@ exports.getAllReservations = getAllReservations;
  */
 const getAllProperties = function(options, limit = 10) {
 
-  const values = [options, limit];
-  const queryString = `
+  let values = [];
+  let queryString = `
   SELECT properties.*, AVG(property_reviews.rating) AS average_rating
   FROM properties
   JOIN property_reviews
   ON property_reviews.property_id = properties.id
-  WHERE city LIKE '%$1%'
-  GROUP BY properties.id
-  HAVING AVG(property_reviews.rating) >= 4
-  ORDER BY average_rating
-  LIMIT $2
   `;
+  console.log(options);
+  let where = `WHERE`;
+  values.push(`%${options.city}%`);
+  queryString += `${where} city  ILIKE $${values.length}
+  `;
+  where = `AND`;
+  if (options.owner_id) {
+    values.push(options.owner_id);
+    queryString += `${where} owner_id IS ${values.length}`;
+    where = `AND`;
+  }
+  if (options.minimum_price_per_night) {
+    values.push(options.minimum_price_per_night);
+    queryString += `${where} cost_per_night / 100 >= $${values.length}
+    `;
+    where = `AND`;
+  }
+  if (options.maximum_price_per_night) {
+    values.push(options.maximum_price_per_night);
+    queryString += `${where} cost_per_night / 100 <= $${values.length}
+    `;
+    where = `AND`;
+  }
+  queryString += `
+  GROUP BY properties.id
+  `;
+  if (options.minimum_rating) {
+    values.push(options.minimum_rating);
+    queryString += `HAVING AVG(property_reviews.rating) >= $${values.length}
+    `;
+  }
+  values.push(limit);
+  queryString += `
+  ORDER BY average_rating
+  LIMIT $${values.length};
+  `;
+  console.log(values);
+  console.log(queryString);
   return pool.query(queryString, values)
     .then(res => {
-      console.log(res.rows);
+      const propertylists = res.rows;
+      console.log(propertylists);
+      return propertylists;
     });
 };
 exports.getAllProperties = getAllProperties;
@@ -147,5 +182,5 @@ const addProperty = function(property) {
     .then(res => {
       console.log(res.rows);
     });
-}
+};
 exports.addProperty = addProperty;
