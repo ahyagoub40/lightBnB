@@ -23,11 +23,9 @@ const getUserWithEmail = function(email) {
   WHERE email = $1
   ;
   `;
-  console.log(values);
   return pool.query(queryString, values)
     .then(res => {
       const user = res.rows[0] || null;
-      console.log(user);
       return (user);
     });
 };
@@ -48,7 +46,6 @@ const getUserWithId = function(id) {
   return pool.query(queryString, values)
     .then(res => {
       const user = res.rows[0];
-      console.log(user);
       return user;
     });
 };
@@ -70,7 +67,6 @@ const addUser =  function(user) {
   return pool.query(queryString, values)
     .then(res => {
       const user = res.rows[0];
-      console.log(user);
       return user;
     });
 };
@@ -99,7 +95,8 @@ const getAllReservations = function(guestId, limit = 10) {
   `;
   return pool.query(queryString, values)
     .then(res => {
-      console.log(res.rows);
+      const reservations = res.rows;
+      return reservations;
     });
 };
 exports.getAllReservations = getAllReservations;
