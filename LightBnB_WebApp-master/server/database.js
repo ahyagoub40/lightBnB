@@ -118,7 +118,6 @@ const getAllProperties = function(options, limit = 10) {
   JOIN property_reviews
   ON property_reviews.property_id = properties.id
   `;
-  console.log(options);
   let where = `WHERE`;
   values.push(`%${options.city}%`);
   queryString += `${where} city  ILIKE $${values.length}
@@ -154,12 +153,9 @@ const getAllProperties = function(options, limit = 10) {
   ORDER BY average_rating
   LIMIT $${values.length};
   `;
-  console.log(values);
-  console.log(queryString);
   return pool.query(queryString, values)
     .then(res => {
       const propertylists = res.rows;
-      console.log(propertylists);
       return propertylists;
     });
 };
@@ -172,15 +168,31 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const values = [property.name, property.email, property.password];
+  const values = [
+    property.owner_id, property.title, property.description,
+    property.thumbnail_photo_url, property.cover_photo_url,
+    property.cost_per_night,
+    property.street, property.city, property.province,
+    property.post_code, property.country, property.parking_spaces,
+    property.number_of_bathrooms, property.number_of_bedrooms
+  ];
   const queryString = `
-  INSERT INTO property
-  VALUES ($1, $2, $3)
+  INSERT INTO properties (owner_id,
+    title, description,
+    thumbnail_photo_url, cover_photo_url,
+    cost_per_night,
+    street, city, province,
+    post_code, country, parking_spaces,
+   number_of_bathrooms, number_of_bedrooms
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   RETURNING *
   `;
+
   return pool.query(queryString, values)
     .then(res => {
-      console.log(res.rows);
+      const newProperty = res.rows;
+      return newProperty;
     });
 };
 exports.addProperty = addProperty;
